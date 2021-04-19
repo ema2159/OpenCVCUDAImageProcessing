@@ -5,7 +5,8 @@
 using namespace std;
 
 int clamp(int val, int lo, int high) {
-  return std::max(lo, std::min(val, high));
+  return max(lo, min(val, high));
+}
 }
 
 int main(int argc, char **argv) {
