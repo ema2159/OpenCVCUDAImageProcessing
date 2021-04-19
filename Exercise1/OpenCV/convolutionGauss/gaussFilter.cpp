@@ -4,6 +4,16 @@
 
 using namespace std;
 
+
+/**
+ * Clamps the value val in the interval [lo, high].
+ * Equivalent to max(lo, min(val, high)).
+ *
+ * @param val: value to clamp.
+ * @param lo: lower bound for the clamping.
+ * @param high: higher bound for the clamping.
+ * @return val clamped between lo and high.
+ */
 int clamp(int val, int lo, int high) {
   return max(lo, min(val, high));
 }
