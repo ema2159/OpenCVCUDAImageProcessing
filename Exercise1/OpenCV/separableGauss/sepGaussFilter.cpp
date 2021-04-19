@@ -7,38 +7,33 @@
 using namespace std;
 
 /**
- * Returns the value of a 2-D Gaussian function with an standard
- * deviation of sigma at position (x, y)
+ * Returns the value of a Gaussian function with an standard
+ * deviation of sigma with an input value x
  *
- * @param x: x value of the Gaussian function.
- * @param y: y value of the Gaussian function.
+ * @param x: input value of the Gaussian function.
  * @param sigma: standard deviation of Gaussian function.
- * @return result of the 2-D Gaussian function.
+ * @return result of the Gaussian function.
  */
-float gauss_2D(int x, int y, float sigma) {
-  return exp(-((pow(x, 2.0) + pow(y, 2.0)) / (2.0 * pow(sigma, 2.0))));
+float gauss_func(int x, float sigma) {
+  return exp(-(pow(x, 2.0) / (2.0 * pow(sigma, 2.0))));
 }
 
 /**
- * Returns a Gaussian kernel of size kernel_size x kernel_size and standard
+ * Returns a Gaussian 1-D kernel of size kernel_size and standard
  * deviation of sigma.
  *
  * @param kernel_size: size of the Gaussian kernel.
  * @param sigma: standard deviation of Gaussian function.
- * @return pointer to dynamic 2D array containing the Gaussian kernel.
+ * @return pointer to dynamic array containing the 1-D Gaussian kernel.
  */
-float **gauss_mat(int kernel_size, float sigma) {
+float *gauss_mat(int kernel_size, float sigma) {
   // Allocate space for the kernel
-  float **kernel = new float *[kernel_size];
-  for (int i = 0; i < kernel_size; i++) {
-    kernel[i] = new float[kernel_size];
-  }
+  float *kernel = new float[kernel_size];
+
   const int kernel_div_2 = kernel_size / 2;
   // Generate gaussian kernel of size kernel_size
   for (int m = -kernel_div_2; m <= kernel_div_2; m++) {
-    for (int n = -kernel_div_2; n <= kernel_div_2; n++) {
-      kernel[m + kernel_div_2][n + kernel_div_2] = gauss_2D(m, n, sigma);
-    }
+    kernel[m + kernel_div_2] = gauss_func(m, sigma);
   }
 
   return kernel;
@@ -47,6 +42,7 @@ float **gauss_mat(int kernel_size, float sigma) {
 int main(int argc, char **argv) {
 
   cv::Mat source = cv::imread(argv[1], cv::IMREAD_COLOR);
+  cv::Mat intermediate(source.rows, source.cols, CV_8UC3, cv::Scalar(0, 255, 0));
   cv::Mat destination(source.rows, source.cols, CV_8UC3, cv::Scalar(0, 255, 0));
 
   cv::imshow("Source Image", source);
@@ -64,13 +60,11 @@ int main(int argc, char **argv) {
                      KERNEL_DIV_2, cv::BORDER_REPLICATE);
 
   // Create a gaussian kernel instead of calculating it each Time
-  float **gauss_kernel = gauss_mat(KERNEL_SIZE, SIGMA);
+  float *gauss_kernel = gauss_mat(KERNEL_SIZE, SIGMA);
   // Calculate sum of terms in the kernel for normalization
   float gauss_sum = 0;
   for (int i = 0; i < KERNEL_SIZE; i++) {
-    for (int j = 0; j < KERNEL_SIZE; j++) {
-      gauss_sum += gauss_kernel[i][j];
-    }
+    gauss_sum += gauss_kernel[i];
   }
 
 #pragma omp parallel for
@@ -81,10 +75,25 @@ int main(int argc, char **argv) {
     for (int j = KERNEL_DIV_2; j < source.cols + KERNEL_DIV_2; j++) {
       cv::Vec3f av = cv::Vec3f(0, 0, 0);
       for (int m = i - KERNEL_DIV_2; m <= i + KERNEL_DIV_2; m++) {
-        for (int n = j - KERNEL_DIV_2; n <= j + KERNEL_DIV_2; n++) {
-          av += input.at<cv::Vec3b>(m, n) *
-                gauss_kernel[m - i + KERNEL_DIV_2][n - j + KERNEL_DIV_2];
-        }
+	av += input.at<cv::Vec3b>(m, j) *
+	  gauss_kernel[m - i + KERNEL_DIV_2];
+      }
+      av /= gauss_sum;
+      intermediate.at<cv::Vec3b>(i - KERNEL_DIV_2, j - KERNEL_DIV_2) = av;
+    }
+  }
+
+  // Create a padded image for the intermediate image
+  cv::copyMakeBorder(intermediate, input, KERNEL_DIV_2, KERNEL_DIV_2,
+		     KERNEL_DIV_2, KERNEL_DIV_2, cv::BORDER_REPLICATE);
+#pragma omp parallel for
+  for (int i = KERNEL_DIV_2; i < source.rows + KERNEL_DIV_2; i++) {
+    // #pragma omp parallel for
+    for (int j = KERNEL_DIV_2; j < source.cols + KERNEL_DIV_2; j++) {
+      cv::Vec3f av = cv::Vec3f(0, 0, 0);
+      for (int n = j - KERNEL_DIV_2; n <= j + KERNEL_DIV_2; n++) {
+	av += input.at<cv::Vec3b>(i, n) *
+	      gauss_kernel[n - j + KERNEL_DIV_2];
       }
       av /= gauss_sum;
       destination.at<cv::Vec3b>(i - KERNEL_DIV_2, j - KERNEL_DIV_2) = av;
@@ -92,9 +101,6 @@ int main(int argc, char **argv) {
   }
 
   // Delete allocated memory
-  for (int i = 0; i < KERNEL_SIZE; i++) {
-    delete[] gauss_kernel[i];
-  }
   delete[] gauss_kernel;
 
   auto end = std::chrono::high_resolution_clock::now();
