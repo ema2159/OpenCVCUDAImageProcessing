@@ -4,20 +4,6 @@
 
 using namespace std;
 
-
-/**
- * Clamps the value val in the interval [lo, high].
- * Equivalent to max(lo, min(val, high)).
- *
- * @param val: value to clamp.
- * @param lo: lower bound for the clamping.
- * @param high: higher bound for the clamping.
- * @return val clamped between lo and high.
- */
-int clamp(int val, int lo, int high) {
-  return max(lo, min(val, high));
-}
-
 /**
  * Returns the value of a 2-D Gaussian function with an standard
  * deviation of sigma at position (x, y)
@@ -42,25 +28,32 @@ int main(int argc, char **argv) {
   const int iter = 1;
 
   const unsigned int KERNEL_SIZE = 19;
-  const float SIGMA = 3;
+  const unsigned int KERNEL_DIV_2 = KERNEL_SIZE / 2;
+  const float SIGMA = 5;
+
+  // Create input image which corresponds to the source image with an added replication padding.
+  cv::Mat input;
+  cv::copyMakeBorder(source, input, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
+                     KERNEL_DIV_2, cv::BORDER_REPLICATE);
 
   for (int it = 0; it < iter; it++) {
 #pragma omp parallel for
-    for (int i = 0; i < source.rows; i++) {
+    // The KERNEL_DIV_2 start is to accout for the added padding to the input image.
+    for (int i = KERNEL_DIV_2; i < source.rows+KERNEL_DIV_2; i++) {
       // #pragma omp parallel for
-      for (int j = 0; j < source.cols; j++) {
+      for (int j = KERNEL_DIV_2; j < source.cols+KERNEL_DIV_2; j++) {
         cv::Vec3f av = cv::Vec3f(0, 0, 0);
-	float kernel_sum = 0;
-	float curr_gauss;
-        for (int m = i-(KERNEL_SIZE / 2); m <= i+(KERNEL_SIZE / 2); m++) {
-          for (int n = j-(KERNEL_SIZE / 2); n <= j+(KERNEL_SIZE / 2); n++) {
-	    curr_gauss = get_gauss_pix(m-i, n-j, SIGMA);
-	    kernel_sum += curr_gauss;
-            av += source.at<cv::Vec3b>(clamp(m, 0, source.rows), clamp(n, 0, source.cols))*curr_gauss;
+        float kernel_sum = 0;
+        float curr_gauss;
+        for (int m = i - (KERNEL_SIZE / 2); m <= i + (KERNEL_SIZE / 2); m++) {
+          for (int n = j - (KERNEL_SIZE / 2); n <= j + (KERNEL_SIZE / 2); n++) {
+            curr_gauss = get_gauss_pix(m - i, n - j, SIGMA);
+            kernel_sum += curr_gauss;
+            av += input.at<cv::Vec3b>(m, n) * curr_gauss;
           }
         }
         av /= kernel_sum;
-        destination.at<cv::Vec3b>(i, j) = av;
+        destination.at<cv::Vec3b>(i-KERNEL_DIV_2, j-KERNEL_DIV_2) = av;
       }
     }
   }
