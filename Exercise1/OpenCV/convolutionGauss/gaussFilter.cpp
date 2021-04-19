@@ -1,6 +1,7 @@
 #include <chrono> // for high_resolution_clock
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <omp.h>
 
 using namespace std;
 
@@ -23,6 +24,8 @@ int main(int argc, char **argv) {
   cv::Mat destination(source.rows, source.cols, CV_8UC3, cv::Scalar(0, 255, 0));
 
   cv::imshow("Source Image", source);
+
+  cout << "Threads: " << omp_get_num_threads() << endl;
 
   auto begin = chrono::high_resolution_clock::now();
   const int iter = 1;
