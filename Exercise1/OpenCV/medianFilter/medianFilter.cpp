@@ -39,17 +39,16 @@ int main(int argc, char **argv) {
 	  av.push_back(input.at<cv::Vec3b>(m, n));
         }
       }
-      std::sort(av.begin(), av.end(), [] (cv::Vec3b pix1, cv::Vec3b pix2){
-	float length1 = pow(pix1[0], 2) + pow(pix1[1], 2) + pow(pix1[2], 2);
-	float length2 = pow(pix2[0], 2) + pow(pix2[1], 2) + pow(pix2[2], 2);
-	return length1 > length2;
-      });
+      std::nth_element(
+	  av.begin(), av.begin() + KERNEL_POW_2/2, av.end(),
+	  [](cv::Vec3b pix1, cv::Vec3b pix2) {
+	    float length1 = pow(pix1[0], 2) + pow(pix1[1], 2) + pow(pix1[2], 2);
+	    float length2 = pow(pix2[0], 2) + pow(pix2[1], 2) + pow(pix2[2], 2);
+	    return length1 > length2;
+	  });
       cv::Vec3f median;
-      if(KERNEL_POW_2 % 2) {
-	median = av[KERNEL_POW_2/2];
-      } else {
-	median = (av[KERNEL_POW_2/2]+av[KERNEL_POW_2/2])/2;
-      }
+      median = av[KERNEL_POW_2/2];
+
       destination.at<cv::Vec3b>(i - KERNEL_DIV_2, j - KERNEL_DIV_2) = median;
     }
   }
