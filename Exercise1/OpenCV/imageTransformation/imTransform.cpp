@@ -1,5 +1,5 @@
 #include <chrono> // for high_resolution_clock
-#include <math.h> /* fmod */
+#include <math.h> /* modf */
 #include <iostream>
 #include <omp.h>
 #include <opencv2/opencv.hpp>
@@ -32,8 +32,8 @@ int main(int argc, char **argv) {
   cv::Mat source = cv::imread(argv[1], cv::IMREAD_COLOR);
 
   // Get operation parameters from the command line
-  float scaleX = min(atof(argv[2]), 3.0);
-  float scaleY = min(atof(argv[3]), 3.0);
+  float scaleX = min(atof(argv[2]), 5.0);
+  float scaleY = min(atof(argv[3]), 5.0);
 
   cv::imshow("Source Image 1", source);
 
@@ -42,17 +42,17 @@ int main(int argc, char **argv) {
                       cv::Scalar(0, 255, 0));
 
   auto begin = chrono::high_resolution_clock::now();
-
 #pragma omp parallel for
   for (int i = 0; i < destination.rows; i++) {
     // #pragma omp parallel for
     for (int j = 0; j < destination.cols; j++) {
-      cv::Vec3f pix1 = (cv::Vec3f)source.at<cv::Vec3b>(i / scaleX, j / scaleY);
-      cv::Vec3f pix2 = (cv::Vec3f)source.at<cv::Vec3b>(i / scaleX + 1, j / scaleY);
-      cv::Vec3f pix3 = (cv::Vec3f)source.at<cv::Vec3b>(i / scaleX, j / scaleY + 1);
-      cv::Vec3f pix4 = (cv::Vec3f)source.at<cv::Vec3b>(i / scaleX + 1, j / scaleY + 1);
-      float intpX = fmod((float) i, scaleX);
-      float intpY = fmod((float) j, scaleY);
+      float x_pos, y_pos, intpX, intpY;
+      intpX = modf(i / scaleX, &x_pos);
+      intpY = modf(j / scaleY, &y_pos);
+      cv::Vec3f pix1 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos, y_pos);
+      cv::Vec3f pix2 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos + 1, y_pos);
+      cv::Vec3f pix3 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos, y_pos + 1);
+      cv::Vec3f pix4 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos + 1, y_pos + 1);
       destination.at<cv::Vec3b>(i, j) = interpolate_pix(pix1, pix2, pix3, pix4, intpX, intpY);
     }
   }
