@@ -6,6 +6,13 @@
 
 using namespace std;
 
+/**
+ * Shifts the hue of a pixel in the CIELAB colorspace.
+ *
+ * @param pix: pixel to transform, given in the CIELAB colorspace.
+ * @param angle: angle to add to the pixel's hue angle.
+ * @return hue shifter pixel.
+ */
 cv::Vec3f hueShift(cv::Vec3f pix, float angle) {
   float C_ab = sqrt(pow(pix[1], 2) + pow(pix[2], 2)); // sqrt((a*)^2+(b*)^2)
   float h = atan2(pix[2], pix[1]);
