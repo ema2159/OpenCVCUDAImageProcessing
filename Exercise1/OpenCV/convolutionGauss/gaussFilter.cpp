@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
 
   // Create a gaussian kernel instead of calculating it each Time
   float **gauss_kernel = gauss_mat(KERNEL_SIZE, SIGMA);
+  // Calculate sum of terms in the kernel for normalization
   float gauss_sum = 0;
   for (int i = 0; i < KERNEL_SIZE; i++) {
     for (int j = 0; j < KERNEL_SIZE; j++) {

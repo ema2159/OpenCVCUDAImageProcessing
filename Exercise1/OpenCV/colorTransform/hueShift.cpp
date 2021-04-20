@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
   // Placeholder image for the result
   cv::Mat destination(source.rows, source.cols, CV_8UC3, cv::Scalar(0, 255, 0));
 
+  // Translate source image to the CIELAB colorspace
   cv::cvtColor(source, source, cv::COLOR_BGR2Lab);
 
   auto begin = chrono::high_resolution_clock::now();
@@ -48,6 +49,7 @@ int main(int argc, char **argv) {
     }
   }
 
+  // Translate result image to BGR colorspace
   cv::cvtColor(destination, destination, cv::COLOR_Lab2BGR);
 
   auto end = std::chrono::high_resolution_clock::now();
