@@ -17,8 +17,8 @@ int main(int argc, char **argv) {
   cv::Mat h_img1 = cv::imread(argv[1]);
   char operation = argv[2][0];
   cv::Mat h_img2 = cv::imread(argv[3]);
-  char scale_factor = atof(argv[4]);
-  char offset = atof(argv[5]);
+  float scale_factor = atof(argv[4]);
+  float offset = atof(argv[5]);
   cv::Mat h_result(max(h_img1.rows, h_img2.rows), max(h_img1.cols, h_img2.cols),
                    CV_8UC3, cv::Scalar(0, 255, 0));
   cv::cuda::GpuMat d_img1, d_img2, d_result;
