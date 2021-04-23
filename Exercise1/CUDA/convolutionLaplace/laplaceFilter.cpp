@@ -24,7 +24,6 @@ int main(int argc, char **argv) {
   // replication padding.
   cv::copyMakeBorder(h_img, h_img, 1, 1, 1, 1, cv::BORDER_REPLICATE);
 
-  cv::imshow("Original Image", h_img);
   d_img.upload(h_img);
   d_result.upload(h_result);
 

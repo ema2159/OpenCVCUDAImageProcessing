@@ -29,7 +29,6 @@ int main(int argc, char **argv) {
   cv::copyMakeBorder(h_img, h_img, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
 		     KERNEL_DIV_2, cv::BORDER_REPLICATE);
 
-  cv::imshow("Original Image", h_img);
   d_img.upload(h_img);
   d_result.upload(h_result);
 
