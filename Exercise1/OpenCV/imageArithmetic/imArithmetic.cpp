@@ -5,6 +5,24 @@
 
 using namespace std;
 
+
+/**
+ * Clamps a vector's values between low and high.
+ *
+ * @param elem: element to clamp.
+ * @param low: lower bound for the clamp.
+ * @param high: upper bound for the clamp.
+ * @return a vector with the original vector values clamped in the specified interval.
+ */
+cv::Vec3f clamp(cv::Vec3f elem, float low, float high) {
+    cv::Vec3f result;
+    result[0] = max(low, min(high, elem[0]));
+    result[1] = max(low, min(high, elem[1]));
+    result[2] = max(low, min(high, elem[2]));
+
+    return result;
+}
+
 /**
  * Do an arithmetic operation between two pixels.
  * I does the following opertion:
@@ -80,6 +98,9 @@ int main(int argc, char **argv) {
       av = pix_arithm((cv::Vec3f)source1.at<cv::Vec3b>(i, j),
                       (cv::Vec3f)source2.at<cv::Vec3b>(i, j), operation,
                       sc_factor, offset);
+
+      av = clamp(av, 0, 255);
+
       destination.at<cv::Vec3b>(i, j) = av;
     }
   }
