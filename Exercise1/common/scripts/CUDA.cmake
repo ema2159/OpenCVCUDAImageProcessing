@@ -12,8 +12,24 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(CUDA REQUIRED)
 if(CUDA_FOUND)
     SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};)
-    cuda_compile(image ../convolutionGauss/gaussFilter.cu)
+    # Gaussian filter
+    cuda_compile(gauss ../convolutionGauss/gaussFilter.cu)
     cuda_add_library(gaussCUDA ../convolutionGauss/gaussFilter.cu)
+    # Laplacian filter
+    cuda_compile(laplace ../convolutionLaplace/laplaceFilter.cu)
+    cuda_add_library(laplaceCUDA ../convolutionLaplace/laplaceFilter.cu)
+    # Image scaling
+    cuda_compile(imScaling ../imageTransformation/imScaling.cu)
+    cuda_add_library(imScalingCUDA ../imageTransformation/imScaling.cu)
+    # Color transformation
+    cuda_compile(hueShift ../colorTransformation/hueShift.cu)
+    cuda_add_library(hueShiftCUDA ../colorTransformation/hueShift.cu)
+    # Image arithmetic
+    cuda_compile(imArithmetic ../imageArithmetic/imArithmetic.cu)
+    cuda_add_library(imArithmeticCUDA ../imageArithmetic/imArithmetic.cu)
+    # Separable Gauss
+    cuda_compile(separableGauss ../separableGauss/separableGauss.cu)
+    cuda_add_library(separableGaussCUDA ../separableGauss/separableGauss.cu)
     add_definitions(-DGPU_OPENCV_ENABLE)
 endif()
   
@@ -21,5 +37,21 @@ endif()
 link_libraries(${OpenCV_LIBS})
 
 # Create executables
+# Gaussian filter
 add_executable(gaussFilter ../convolutionGauss/gaussFilter.cpp)
 target_link_libraries(gaussFilter gaussCUDA)
+# Laplacian filter
+add_executable(laplaceFilter ../convolutionLaplace/laplaceFilter.cpp)
+target_link_libraries(laplaceFilter laplaceCUDA)
+# Image scaling
+add_executable(imScaling ../imageTransformation/imScaling.cpp)
+target_link_libraries(imScaling imScalingCUDA)
+# Color transformation
+add_executable(hueShift ../colorTransformation/hueShift.cpp)
+target_link_libraries(hueShift hueShiftCUDA)
+# Image arithmetic
+add_executable(imArithmetic ../imageArithmetic/imArithmetic.cpp)
+target_link_libraries(imArithmetic imArithmeticCUDA)
+# Separable Gauss
+add_executable(separableGauss ../separableGauss/separableGauss.cpp)
+target_link_libraries(separableGauss separableGaussCUDA)
