@@ -6,16 +6,16 @@
 
 using namespace std;
 
-void startCUDA(cv::cuda::GpuMat &src, cv::cuda::GpuMat &dst);
+void startCUDA(cv::cuda::GpuMat &src, cv::cuda::GpuMat &dst, float angle);
 
 int main(int argc, char **argv) {
   cv::namedWindow("Original Image", cv::WINDOW_OPENGL | cv::WINDOW_AUTOSIZE);
   cv::namedWindow("Processed Image", cv::WINDOW_OPENGL | cv::WINDOW_AUTOSIZE);
 
   cv::Mat h_img = cv::imread(argv[1]);
-  // float shift_angle = atof(argv[2]);
+  float shift_angle = atof(argv[2]);
   cv::Mat h_result(h_img.rows, h_img.cols, CV_8UC3, cv::Scalar(0, 255, 0));
-  cv::cuda::GpuMat d_img, d_img_Lab, d_result;
+  cv::cuda::GpuMat d_img, d_result;
 
   cv::imshow("Original Image", h_img);
 
@@ -24,12 +24,12 @@ int main(int argc, char **argv) {
 
   d_img.upload(h_img);
   d_result.upload(h_result);
-  
-  // Translate source image inside device to the CIELAB colorspace
-  cv::cuda::cvtColor(d_img, d_img_Lab, cv::COLOR_BGR2Lab);
 
   for (int i = 0; i < iter; i++) {
-    startCUDA(d_img_Lab, d_result);
+    // Translate source image inside device to the CIELAB colorspace
+    cv::cuda::cvtColor(d_img, d_img, cv::COLOR_BGR2Lab);
+    startCUDA(d_img, d_result, shift_angle);
+    cv::cuda::cvtColor(d_result, d_result, cv::COLOR_Lab2BGR);
   }
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - begin;
