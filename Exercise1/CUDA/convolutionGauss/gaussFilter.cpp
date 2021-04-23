@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 
   // Create input image which corresponds to the source image with an added
   // replication padding.
-  cv::copyMakeBorder(h_img, h_img, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
+  cv::cuda::copyMakeBorder(h_img, h_img, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
 		     KERNEL_DIV_2, cv::BORDER_REPLICATE);
 
   d_img.upload(h_img);
