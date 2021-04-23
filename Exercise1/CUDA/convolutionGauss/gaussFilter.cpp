@@ -21,9 +21,9 @@ int main(int argc, char **argv) {
   auto begin = chrono::high_resolution_clock::now();
   const int iter = 1;
 
-  const int KERNEL_SIZE = 31;
+  const int KERNEL_SIZE = atoi(argv[2]);
   const int KERNEL_DIV_2 = KERNEL_SIZE / 2;
-  const float SIGMA = 5;
+  const float SIGMA = atoi(argv[3]);
 
   // Create input image which corresponds to the source image with an added
   // replication padding.
