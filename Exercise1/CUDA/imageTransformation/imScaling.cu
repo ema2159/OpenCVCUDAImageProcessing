@@ -7,6 +7,12 @@
 #include <opencv2/core/cuda/vec_traits.hpp>
 #include <opencv2/core/cuda/vec_math.hpp>
 
+/**
+ * Converts a uchar3 element to a float3.
+ *
+ * @param elem: element to convert.
+ * @return input a float 3 with the input element fields casted to float.
+ */
 __device__ float3 uchar3_to_float3(uchar3 elem) {
     float3 result;
     result.x = (float)elem.x;
