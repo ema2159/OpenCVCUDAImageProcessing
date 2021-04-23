@@ -5,14 +5,16 @@
 
 using namespace std;
 
-void startCUDA(cv::cuda::GpuMat &src, cv::cuda::GpuMat &dst);
+void startCUDA(cv::cuda::GpuMat &src, cv::cuda::GpuMat &dst, float scaleX, float scaleY);
 
 int main(int argc, char **argv) {
   cv::namedWindow("Original Image", cv::WINDOW_OPENGL | cv::WINDOW_AUTOSIZE);
   cv::namedWindow("Processed Image", cv::WINDOW_OPENGL | cv::WINDOW_AUTOSIZE);
 
   cv::Mat h_img = cv::imread(argv[1]);
-  cv::Mat h_result(h_img.rows, h_img.cols, CV_8UC3, cv::Scalar(0, 255, 0));
+  float scaleX = atof(argv[2]);
+  float scaleY = atof(argv[3]);
+  cv::Mat h_result(h_img.rows*scaleX, h_img.cols*scaleY, CV_8UC3, cv::Scalar(0, 255, 0));
   cv::cuda::GpuMat d_img, d_result;
 
   cv::imshow("Original Image", h_img);
@@ -24,7 +26,7 @@ int main(int argc, char **argv) {
   d_result.upload(h_result);
 
   for (int i = 0; i < iter; i++) {
-    startCUDA(d_img, d_result);
+    startCUDA(d_img, d_result, scaleX, scaleY);
   }
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - begin;
