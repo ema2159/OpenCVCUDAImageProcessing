@@ -7,7 +7,7 @@
 #include <opencv2/core/cuda/vec_traits.hpp>
 #include <opencv2/core/cuda/vec_math.hpp>
 
-__device__ static float LAPLACE_KERNEL[3][3] = {{-1,-1,-1},
+__device__ const float LAPLACE_KERNEL[3][3] = {{-1,-1,-1},
 					      {-1, 8,-1},
 					      {-1,-1,-1}};
 
