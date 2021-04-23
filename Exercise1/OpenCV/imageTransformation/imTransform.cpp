@@ -6,8 +6,33 @@
 
 using namespace std;
 
+/**
+ * Returns the linear interpolation of a and b by a factor of t.
+ * Performs the following operation:
+ * result = a + t*(b - a)
+ *
+ * @param a: first value to interpolate.
+ * @param b: second value to interpolate.
+ * @param t: interpolation factor.
+ * @return result of the interpolation.
+ */
 float lerp(float a, float b, float t) { return a + t * (b - a); }
 
+/**
+ * Returns the bilinear interpolation of four pixels.
+ * Performs the following operation:
+ * inpH1 = lerp(pix1, pix2, intpX)
+ * inpH2 = lerp(pix3, pix4, intpX)
+ * inpV = lerp(inpH1, inpH2, intpY)
+ *
+ * @param pix1: first pixel to interpolate.
+ * @param pix2: second pixel to interpolate.
+ * @param pix3: third pixel to interpolate.
+ * @param pix4: fourth pixel to interpolate.
+ * @param intpX: horizontal interpolation factor.
+ * @param intpY: vertical interpolation factor.
+ * @return result of the bilinear interpolation.
+ */
 cv::Vec3f interpolate_pix(cv::Vec3f pix1, cv::Vec3f pix2, cv::Vec3f pix3,
                           cv::Vec3f pix4, float intpX, float intpY) {
   // First horizontal interpolation
