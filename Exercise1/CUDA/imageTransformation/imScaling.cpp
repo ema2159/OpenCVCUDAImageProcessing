@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   cv::Mat h_img = cv::imread(argv[1]);
   float scaleX = atof(argv[2]);
   float scaleY = atof(argv[3]);
-  cv::Mat h_result(h_img.rows*scaleX, h_img.cols*scaleY, CV_8UC3, cv::Scalar(0, 255, 0));
+  cv::Mat h_result(h_img.rows*scaleY, h_img.cols*scaleX, CV_8UC3, cv::Scalar(0, 255, 0));
   cv::cuda::GpuMat d_img, d_result;
 
   cv::imshow("Original Image", h_img);
