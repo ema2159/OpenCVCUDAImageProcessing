@@ -55,7 +55,8 @@ int divUp(int a, int b) {
   return ((a % b) != 0) ? (a / b + 1) : (a / b);
 }
 
-void startCUDA ( cv::cuda::GpuMat& src, cv::cuda::GpuMat& dst, int KERNEL_SIZE, float SIGMA ) {
+void startCUDA (cv::cuda::GpuMat& src, cv::cuda::GpuMat& dst, int KERNEL_SIZE,
+		float SIGMA ) {
   const dim3 block(32, 8);
   const dim3 grid(divUp(dst.cols, block.x), divUp(dst.rows, block.y));
 
