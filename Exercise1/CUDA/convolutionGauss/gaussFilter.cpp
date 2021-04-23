@@ -5,7 +5,8 @@
 
 using namespace std;
 
-void startCUDA(cv::cuda::GpuMat &src, cv::cuda::GpuMat &dst, int kernel_size, float sigma);
+void startCUDA(cv::cuda::GpuMat &src, cv::cuda::GpuMat &dst, int kernel_size,
+               float sigma);
 
 int main(int argc, char **argv) {
   cv::namedWindow("Original Image", cv::WINDOW_OPENGL | cv::WINDOW_AUTOSIZE);
@@ -26,8 +27,8 @@ int main(int argc, char **argv) {
 
   // Create input image which corresponds to the source image with an added
   // replication padding.
-  cv::cuda::copyMakeBorder(h_img, h_img, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
-		     KERNEL_DIV_2, cv::BORDER_REPLICATE);
+  cv::cuda::copyMakeBorder(h_img, h_img, KERNEL_DIV_2, KERNEL_DIV_2,
+                           KERNEL_DIV_2, KERNEL_DIV_2, cv::BORDER_REPLICATE);
 
   d_img.upload(h_img);
   d_result.upload(h_result);
