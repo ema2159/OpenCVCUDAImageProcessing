@@ -22,9 +22,6 @@ template< typename T > __device__ float length(T elem) {
 		+ pow((float)elem.z, 2));
 }
 
-// Standard Lomuto partition function
-__device__ int partition(uchar3 arr[], int low, int high) {
-    uchar3 pivot = arr[high];
 template< typename T > __device__ int partition(T arr[], int low, int high) {
     T pivot = arr[high];
     int i = (low - 1);
@@ -38,8 +35,6 @@ template< typename T > __device__ int partition(T arr[], int low, int high) {
     return (i + 1);
 }
   
-// Implementation of QuickSelect
-__device__ uchar3 kth_smallest(uchar3 a[], int left, int right, int k) {
 template< typename T > __device__ T kth_smallest(T a[], int left, int right,
 						 int k) {
   
