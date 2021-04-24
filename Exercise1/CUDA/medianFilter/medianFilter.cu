@@ -10,6 +10,11 @@
 
 #define MAX_ARRAY_SIZE 400
 
+/**
+ * Swaps two elements of an array.
+ * @param a: Memory location of first element.
+ * @param b: Memory location of second element.
+ */
 template< typename T > __device__ void swap(T* a, T* b) {
     T temp = *a;
     *a = *b;
@@ -17,11 +22,25 @@ template< typename T > __device__ void swap(T* a, T* b) {
     return;
 }
 
+/**
+ * Returns the length of a vector.
+ *
+ * @param elem: the vector to obtain the length from.
+ * @return the length of the given vector.
+ */
 template< typename T > __device__ float length(T elem) {
     return sqrt(pow((float)elem.x, 2) + pow((float)elem.y, 2)
 		+ pow((float)elem.z, 2));
 }
 
+/**
+ * Implementation of a standard Lomuto partiton algorithm.
+ *
+ * @param arr: the array to partition.
+ * @param low: starting point for the partition in the array.
+ * @param high: ending point for the partition in the array.
+ * @return the length of the given vector.
+ */
 template< typename T > __device__ int partition(T arr[], int low, int high) {
     T pivot = arr[high];
     int i = (low - 1);
@@ -35,6 +54,17 @@ template< typename T > __device__ int partition(T arr[], int low, int high) {
     return (i + 1);
 }
   
+
+/**
+ * Returns the kth smallest element from a given array.
+ *
+ * @param arr: the array to find the smallest element from.
+ * @param left: starting point for the search in the array.
+ * @param right: ending point for the search in the array.
+ * @param k: value corresponding to the position of the element to find in the 
+ * original array when sorted.
+ * @return the length of the given vector.
+ */
 template< typename T > __device__ T kth_smallest(T a[], int left, int right,
 						 int k) {
   
