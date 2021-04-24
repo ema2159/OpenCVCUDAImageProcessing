@@ -25,25 +25,29 @@ template< typename T > __device__ float length(T elem) {
 // Standard Lomuto partition function
 __device__ int partition(uchar3 arr[], int low, int high) {
     uchar3 pivot = arr[high];
+template< typename T > __device__ int partition(T arr[], int low, int high) {
+    T pivot = arr[high];
     int i = (low - 1);
     for (int j = low; j <= high - 1; j++) {
-        if (length<uchar3>(arr[j]) <= length<uchar3>(pivot)) {
+        if (length<T>(arr[j]) <= length<T>(pivot)) {
             i++;
-            swap<uchar3>(&arr[i], &arr[j]);
+            swap<T>(&arr[i], &arr[j]);
         }
     }
-    swap<uchar3>(&arr[i + 1], &arr[high]);
+    swap<T>(&arr[i + 1], &arr[high]);
     return (i + 1);
 }
   
 // Implementation of QuickSelect
 __device__ uchar3 kth_smallest(uchar3 a[], int left, int right, int k) {
+template< typename T > __device__ T kth_smallest(T a[], int left, int right,
+						 int k) {
   
     while (left <= right) {
   
         // Partition a[left..right] around a pivot
         // and find the position of the pivot
-        int pivotIndex = partition(a, left, right);
+        int pivotIndex = partition<T>(a, left, right);
   
         // If pivot itself is the k-th smallest element
         if (pivotIndex == k - 1)
@@ -59,7 +63,7 @@ __device__ uchar3 kth_smallest(uchar3 a[], int left, int right, int k) {
         else
             left = pivotIndex + 1;
     }
-    return make_uchar3(0, 0, 0);
+    return a[0];
 }
 
 __global__ void process(const cv::cuda::PtrStep<uchar3> src,
@@ -81,9 +85,7 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
 	}
 
 	int arr_size = (int)pow(kernel_size, 2);
-	uchar3 median = kth_smallest(vals, 0, arr_size, arr_size/2);
-
-	// val = src(dst_y+median_position/arr_size, dst_x+median_position%arr_size);
+	uchar3 median = kth_smallest<uchar3>(vals, 0, arr_size, arr_size/2);
 
 	dst(dst_y, dst_x).x = median.x;
 	dst(dst_y, dst_x).y = median.y;
