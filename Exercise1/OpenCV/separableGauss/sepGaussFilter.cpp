@@ -49,8 +49,8 @@ int main(int argc, char **argv) {
 
   auto begin = chrono::high_resolution_clock::now();
 
-  const unsigned int KERNEL_SIZE = 31;
-  const unsigned int KERNEL_DIV_2 = KERNEL_SIZE / 2;
+  const int KERNEL_SIZE = atoi(argv[2]);
+  const int KERNEL_DIV_2 = KERNEL_SIZE / 2;
   const float SIGMA = 5;
 
   // Create input image which corresponds to the source image with an added
