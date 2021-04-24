@@ -27,9 +27,12 @@ if(CUDA_FOUND)
     # Image arithmetic
     cuda_compile(imArithmetic ../imageArithmetic/imArithmetic.cu)
     cuda_add_library(imArithmeticCUDA ../imageArithmetic/imArithmetic.cu)
-    # Separable Gauss
+    # Separable Gaussian filter
     cuda_compile(separableGauss ../separableGauss/separableGauss.cu)
     cuda_add_library(separableGaussCUDA ../separableGauss/separableGauss.cu)
+    # Median filter
+    cuda_compile(medianFilter ../medianFilter/medianFilter.cu)
+    cuda_add_library(medianFilterCUDA ../medianFilter/medianFilter.cu)
     add_definitions(-DGPU_OPENCV_ENABLE)
 endif()
   
@@ -52,6 +55,9 @@ target_link_libraries(hueShift hueShiftCUDA)
 # Image arithmetic
 add_executable(imArithmetic ../imageArithmetic/imArithmetic.cpp)
 target_link_libraries(imArithmetic imArithmeticCUDA)
-# Separable Gauss
+# Separable Gaussian filter
 add_executable(separableGauss ../separableGauss/separableGauss.cpp)
 target_link_libraries(separableGauss separableGaussCUDA)
+# Median filter
+add_executable(medianFilter ../medianFilter/medianFilter.cpp)
+target_link_libraries(medianFilter medianFilterCUDA)
