@@ -39,7 +39,7 @@ template< typename T > __device__ float length(T elem) {
  * @param arr: the array to partition.
  * @param low: starting point for the partition in the array.
  * @param high: ending point for the partition in the array.
- * @return the length of the given vector.
+ * @return the position of the pivot.
  */
 template< typename T > __device__ int partition(T arr[], int low, int high) {
     T pivot = arr[high];
@@ -63,7 +63,7 @@ template< typename T > __device__ int partition(T arr[], int low, int high) {
  * @param right: ending point for the search in the array.
  * @param k: value corresponding to the position of the element to find in the 
  * original array when sorted.
- * @return the length of the given vector.
+ * @return the kth smallest element in the array.
  */
 template< typename T > __device__ T kth_smallest(T a[], int left, int right,
 						 int k) {
