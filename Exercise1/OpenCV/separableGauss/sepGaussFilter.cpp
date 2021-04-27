@@ -50,15 +50,15 @@ int main(int argc, char **argv) {
 
   auto begin = chrono::high_resolution_clock::now();
 
-  const int KERNEL_SIZE = atoi(argv[2]);
+  const int KERNEL_SIZE = atoi(argv[2])%2 ? atoi(argv[2]) : atoi(argv[2])+1;
   const int KERNEL_DIV_2 = KERNEL_SIZE / 2;
-  const float SIGMA = 5;
 
   // Create input image which corresponds to the source image with an added
   // replication padding.
   cv::Mat input;
   cv::copyMakeBorder(source, input, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
                      KERNEL_DIV_2, cv::BORDER_REPLICATE);
+  const float SIGMA = atoi(argv[3]);
 
   const int iter = 10;
   for (int it = 0; it < iter; it++) {
