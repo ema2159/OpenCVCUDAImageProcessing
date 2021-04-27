@@ -39,8 +39,8 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
                         cv::cuda::PtrStep<uchar3> dst, int rows, int cols,
                         int kernel_size, int sigma) {
 
-    const int dst_x = (blockDim.x-kernel_size) * blockIdx.x + threadIdx.x;
-    const int dst_y = (blockDim.y-kernel_size) * blockIdx.y + threadIdx.y;
+    const int dst_x = TILE_SIZE * blockIdx.x + threadIdx.x-kernel_size;
+    const int dst_y = TILE_SIZE * blockIdx.y + threadIdx.y-kernel_size;
 
     // Filter radius
     const int kernel_div2 = kernel_size / 2;
@@ -60,9 +60,9 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
     bool is_inside_tile =
         kernel_div2 <= threadIdx.x && threadIdx.x < TILE_SIZE + kernel_div2 &&
         kernel_div2 <= threadIdx.y && threadIdx.y < TILE_SIZE + kernel_div2;
-    if (dst_x < cols-kernel_div2 && dst_y < rows-kernel_div2 && is_inside_tile) {
-        float3 val = make_float3(0, 0, 0);
-        float gauss_sum = 0;
+    if (dst_x < cols && dst_y < rows && is_inside_tile) {
+	float3 val = make_float3(0, 0, 0);
+	float gauss_sum = 0;
         for (int m = -kernel_div2; m <= kernel_div2; m++) {
             for (int n = -kernel_div2; n <= kernel_div2; n++) {
                 float gauss_val = gauss_2D(m, n, sigma);
@@ -80,7 +80,6 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
         val.y = val.y/gauss_sum;
         val.z = val.z/gauss_sum;
 
-	int src_dst_shift = (int)(TILE_SIZE+2*kernel_size);
         dst(dst_y, dst_x).x = val.x;
         dst(dst_y, dst_x).y = val.y;
         dst(dst_y, dst_x).z = val.z;
@@ -94,18 +93,13 @@ int divUp(int a, int b) {
 void startCUDA (cv::cuda::GpuMat& src, cv::cuda::GpuMat& dst, int KERNEL_SIZE,
                 float SIGMA ) {
   const dim3 block(TILE_SIZE+KERNEL_SIZE, TILE_SIZE+KERNEL_SIZE);
-  // int block_overlap_rows = src.rows
-  // int block_overlap_cols = src
-  const dim3 grid(divUp(src.cols, TILE_SIZE), divUp(src.rows, TILE_SIZE));
+  const dim3 grid(divUp(dst.cols, TILE_SIZE)+1, divUp(dst.rows, TILE_SIZE)+1);
 
   
   // Create a tile to process pixels within a block's shared memory
   int shmem_size = sizeof(uchar3)*(TILE_SIZE+KERNEL_SIZE)*(TILE_SIZE+KERNEL_SIZE);
-  // printf("AAAAAAAAAAAAAAA %i\n", TILE_SIZE);
-  // printf("AAAAAAAAAAAAAAA %i\n", KERNEL_SIZE);
-  // printf("AAAAAAAAAAAAAAA %i\n", shmem_size);
   
-  process<<<grid, block, shmem_size>>>(src, dst, src.rows, src.cols, KERNEL_SIZE, SIGMA);
+  process<<<grid, block, shmem_size>>>(src, dst, dst.rows, dst.cols, KERNEL_SIZE, SIGMA);
 
 }
 
