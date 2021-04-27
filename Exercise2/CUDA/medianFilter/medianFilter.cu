@@ -134,7 +134,9 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
 	int count = 0;
 	for (int m = -kernel_div2; m <= kernel_div2; m++) {
 	    for (int n = -kernel_div2; n <= kernel_div2; n++) {
-		vals[count] = src(dst_y+n, dst_x+m);
+                int ty = threadIdx.y+n;
+                int tx = threadIdx.x+m;
+		vals[count] = tile[ty*(TILE_SIZE+kernel_size)+tx];
 		count++;
 	    }
 	}
