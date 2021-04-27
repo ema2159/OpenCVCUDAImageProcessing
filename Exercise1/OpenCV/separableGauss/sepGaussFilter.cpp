@@ -52,16 +52,15 @@ int main(int argc, char **argv) {
 
   const int KERNEL_SIZE = atoi(argv[2])%2 ? atoi(argv[2]) : atoi(argv[2])+1;
   const int KERNEL_DIV_2 = KERNEL_SIZE / 2;
-
-  // Create input image which corresponds to the source image with an added
-  // replication padding.
-  cv::Mat input;
-  cv::copyMakeBorder(source, input, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
-                     KERNEL_DIV_2, cv::BORDER_REPLICATE);
   const float SIGMA = atoi(argv[3]);
 
   const int iter = 10;
   for (int it = 0; it < iter; it++) {
+    // Create input image which corresponds to the source image with an added
+    // replication padding.
+    cv::Mat input;
+    cv::copyMakeBorder(source, input, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
+		       KERNEL_DIV_2, cv::BORDER_REPLICATE);
     // Create a gaussian kernel instead of calculating it each Time
     float *gauss_kernel = gauss_mat(KERNEL_SIZE, SIGMA);
     // Calculate sum of terms in the kernel for normalization
