@@ -7,7 +7,7 @@
 #include <opencv2/core/cuda/vec_traits.hpp>
 #include <opencv2/core/cuda/vec_math.hpp>
 
-#define TILE_SIZE 15
+#define TILE_SIZE 300
 
 /**
  * Clamps the value val in the interval [lo, high].
