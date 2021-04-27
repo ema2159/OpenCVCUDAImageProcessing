@@ -11,6 +11,19 @@
 #define MAX_ARRAY_SIZE 400
 
 /**
+ * Clamps the value val in the interval [lo, high].
+ * Equivalent to max(lo, min(val, high)).
+ *
+ * @param val: value to clamp.
+ * @param lo: lower bound for the clamping.
+ * @param high: higher bound for the clamping.
+ * @return val clamped between lo and high.
+ */
+template< typename T > __device__ T clamp(T val, T lo, T high) {
+  return max(lo, min(val, high));
+}
+
+/**
  * Swaps two elements of an array.
  * @param a: Memory location of first element.
  * @param b: Memory location of second element.
@@ -104,7 +117,9 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
 	int count = 0;
 	for (int m = -kernel_div2; m <= kernel_div2; m++) {
 	    for (int n = -kernel_div2; n <= kernel_div2; n++) {
-		vals[count] = src(dst_y+n, dst_x+m);
+		int px = clamp<float>(dst_x, 0, cols-1);
+		int py = clamp<float>(dst_y, 0, rows-1);
+		vals[count] = src(py+n, px+m);
 		count++;
 	    }
 	}
