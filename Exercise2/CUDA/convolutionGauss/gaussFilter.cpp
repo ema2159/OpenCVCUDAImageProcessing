@@ -25,11 +25,6 @@ int main(int argc, char **argv) {
   const int KERNEL_DIV_2 = KERNEL_SIZE / 2;
   const float SIGMA = atoi(argv[3]);
 
-  // Create input image which corresponds to the source image with an added
-  // replication padding.
-  cv::cuda::copyMakeBorder(h_img, h_img, KERNEL_DIV_2, KERNEL_DIV_2,
-                           KERNEL_DIV_2, KERNEL_DIV_2, cv::BORDER_REPLICATE);
-
   d_img.upload(h_img);
   d_result.upload(h_result);
 
