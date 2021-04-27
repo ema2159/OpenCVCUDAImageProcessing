@@ -54,6 +54,4 @@ int main(int argc, char **argv) {
 
   cv::waitKey();
   return 0;
-
-  return 0;
 }

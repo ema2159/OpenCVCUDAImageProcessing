@@ -29,7 +29,6 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
 
     if (dst_x < cols && dst_y < rows) {
 	const int kernel_div2 = kernel_size / 2;
-	// Generate gaussian kernel of size kernel_size
 	float3 val = make_float3(0, 0, 0);
 	float gauss_sum = 0;
 	for (int m = -kernel_div2; m <= kernel_div2; m++) {
