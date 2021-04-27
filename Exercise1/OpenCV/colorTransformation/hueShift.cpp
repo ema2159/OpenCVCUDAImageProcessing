@@ -39,26 +39,30 @@ int main(int argc, char **argv) {
 
   auto begin = chrono::high_resolution_clock::now();
 
+  const int iter = 10;
+  for (int it = 0; it < iter; it++) {
 #pragma omp parallel for
-  for (int i = 0; i < source.rows; i++) {
-    // #pragma omp parallel for
-    for (int j = 0; j < source.cols; j++) {
+    for (int i = 0; i < source.rows; i++) {
+      // #pragma omp parallel for
+      for (int j = 0; j < source.cols; j++) {
 
-      destination.at<cv::Vec3b>(i, j) =
-          hueShift((cv::Vec3f)source.at<cv::Vec3b>(i, j), hue_shift_angle);
+	destination.at<cv::Vec3b>(i, j) =
+	    hueShift((cv::Vec3f)source.at<cv::Vec3b>(i, j), hue_shift_angle);
+      }
     }
+
+    // Translate result image to BGR colorspace
+    cv::cvtColor(destination, destination, cv::COLOR_Lab2BGR);
   }
-
-  // Translate result image to BGR colorspace
-  cv::cvtColor(destination, destination, cv::COLOR_Lab2BGR);
-
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - begin;
 
   cv::imshow("Processed Image", destination);
 
   cout << "Processing time: " << diff.count() << " s" << endl;
+  cout << "Time for 1 iteration: " << diff.count()/iter << " s" << endl;
+  cout << "IPS: " << iter/diff.count() << endl;
 
   cv::waitKey();
   return 0;
-}
+  }

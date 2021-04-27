@@ -1,10 +1,10 @@
-#include <chrono> // for high_resolution_clock
+#include <algorithm> // std::sort
+#include <chrono>    // for high_resolution_clock
 #include <cstdlib>
 #include <iostream>
-#include <algorithm> // std::sort
-#include <vector> // std::vector
 #include <omp.h>
 #include <opencv2/opencv.hpp>
+#include <vector> // std::vector
 
 using namespace std;
 
@@ -27,38 +27,43 @@ int main(int argc, char **argv) {
   cv::copyMakeBorder(source, input, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
                      KERNEL_DIV_2, cv::BORDER_REPLICATE);
 
+  const int iter = 10;
+  for (int it = 0; it < iter; it++) {
 #pragma omp parallel for
-  // The KERNEL_DIV_2 start is to account for the added padding to the input
-  // image.
-  for (int i = KERNEL_DIV_2; i < source.rows + KERNEL_DIV_2; i++) {
-    // #pragma omp parallel for
-    for (int j = KERNEL_DIV_2; j < source.cols + KERNEL_DIV_2; j++) {
-      std::vector<cv::Vec3f> av;
-      for (int m = i - KERNEL_DIV_2; m <= i + KERNEL_DIV_2; m++) {
-        for (int n = j - KERNEL_DIV_2; n <= j + KERNEL_DIV_2; n++) {
-	  av.push_back(input.at<cv::Vec3b>(m, n));
+    // The KERNEL_DIV_2 start is to account for the added padding to the input
+    // image.
+    for (int i = KERNEL_DIV_2; i < source.rows + KERNEL_DIV_2; i++) {
+      // #pragma omp parallel for
+      for (int j = KERNEL_DIV_2; j < source.cols + KERNEL_DIV_2; j++) {
+        std::vector<cv::Vec3f> av;
+        for (int m = i - KERNEL_DIV_2; m <= i + KERNEL_DIV_2; m++) {
+          for (int n = j - KERNEL_DIV_2; n <= j + KERNEL_DIV_2; n++) {
+            av.push_back(input.at<cv::Vec3b>(m, n));
+          }
         }
-      }
-      std::nth_element(
-	  av.begin(), av.begin() + KERNEL_POW_2/2, av.end(),
-	  [](cv::Vec3b pix1, cv::Vec3b pix2) {
-	    float length1 = pow(pix1[0], 2) + pow(pix1[1], 2) + pow(pix1[2], 2);
-	    float length2 = pow(pix2[0], 2) + pow(pix2[1], 2) + pow(pix2[2], 2);
-	    return length1 > length2;
-	  });
-      cv::Vec3f median;
-      median = av[KERNEL_POW_2/2];
+        std::nth_element(av.begin(), av.begin() + KERNEL_POW_2 / 2, av.end(),
+                         [](cv::Vec3b pix1, cv::Vec3b pix2) {
+                           float length1 = pow(pix1[0], 2) + pow(pix1[1], 2) +
+                                           pow(pix1[2], 2);
+                           float length2 = pow(pix2[0], 2) + pow(pix2[1], 2) +
+                                           pow(pix2[2], 2);
+                           return length1 > length2;
+                         });
+        cv::Vec3f median;
+        median = av[KERNEL_POW_2 / 2];
 
-      destination.at<cv::Vec3b>(i - KERNEL_DIV_2, j - KERNEL_DIV_2) = median;
+        destination.at<cv::Vec3b>(i - KERNEL_DIV_2, j - KERNEL_DIV_2) = median;
+      }
     }
   }
-
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - begin;
 
   cv::imshow("Processed Image", destination);
 
   cout << "Processing time: " << diff.count() << " s" << endl;
+  cout << "Time for 1 iteration: " << diff.count() / iter << " s" << endl;
+  cout << "IPS: " << iter / diff.count() << endl;
 
   cv::waitKey();
   return 0;

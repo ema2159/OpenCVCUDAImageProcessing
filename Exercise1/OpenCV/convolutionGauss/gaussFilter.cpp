@@ -63,46 +63,49 @@ int main(int argc, char **argv) {
   cv::copyMakeBorder(source, input, KERNEL_DIV_2, KERNEL_DIV_2, KERNEL_DIV_2,
                      KERNEL_DIV_2, cv::BORDER_REPLICATE);
 
-  // Create a gaussian kernel instead of calculating it each Time
-  float **gauss_kernel = gauss_mat(KERNEL_SIZE, SIGMA);
-  // Calculate sum of terms in the kernel for normalization
-  float gauss_sum = 0;
-  for (int i = 0; i < KERNEL_SIZE; i++) {
-    for (int j = 0; j < KERNEL_SIZE; j++) {
-      gauss_sum += gauss_kernel[i][j];
-    }
-  }
-
-#pragma omp parallel for
-  // The KERNEL_DIV_2 start is to account for the added padding to the input
-  // image.
-  for (int i = KERNEL_DIV_2; i < source.rows + KERNEL_DIV_2; i++) {
-    // #pragma omp parallel for
-    for (int j = KERNEL_DIV_2; j < source.cols + KERNEL_DIV_2; j++) {
-      cv::Vec3f av = cv::Vec3f(0, 0, 0);
-      for (int m = i - KERNEL_DIV_2; m <= i + KERNEL_DIV_2; m++) {
-        for (int n = j - KERNEL_DIV_2; n <= j + KERNEL_DIV_2; n++) {
-          av += input.at<cv::Vec3b>(m, n) *
-                gauss_kernel[m - i + KERNEL_DIV_2][n - j + KERNEL_DIV_2];
-        }
+  const int iter = 10;
+  for (int it = 0; it < iter; it++) {
+    // Create a gaussian kernel instead of calculating it each Time
+    float **gauss_kernel = gauss_mat(KERNEL_SIZE, SIGMA);
+    // Calculate sum of terms in the kernel for normalization
+    float gauss_sum = 0;
+    for (int i = 0; i < KERNEL_SIZE; i++) {
+      for (int j = 0; j < KERNEL_SIZE; j++) {
+	gauss_sum += gauss_kernel[i][j];
       }
-      av /= gauss_sum;
-      destination.at<cv::Vec3b>(i - KERNEL_DIV_2, j - KERNEL_DIV_2) = av;
     }
-  }
+#pragma omp parallel for
+    // The KERNEL_DIV_2 start is to account for the added padding to the input
+    // image.
+    for (int i = KERNEL_DIV_2; i < source.rows + KERNEL_DIV_2; i++) {
+      // #pragma omp parallel for
+      for (int j = KERNEL_DIV_2; j < source.cols + KERNEL_DIV_2; j++) {
+	cv::Vec3f av = cv::Vec3f(0, 0, 0);
+	for (int m = i - KERNEL_DIV_2; m <= i + KERNEL_DIV_2; m++) {
+	  for (int n = j - KERNEL_DIV_2; n <= j + KERNEL_DIV_2; n++) {
+	    av += input.at<cv::Vec3b>(m, n) *
+		  gauss_kernel[m - i + KERNEL_DIV_2][n - j + KERNEL_DIV_2];
+          }
+        }
+        av /= gauss_sum;
+	destination.at<cv::Vec3b>(i - KERNEL_DIV_2, j - KERNEL_DIV_2) = av;
+      }
+    }
 
-  // Delete allocated memory
-  for (int i = 0; i < KERNEL_SIZE; i++) {
-    delete[] gauss_kernel[i];
+    // Delete allocated memory
+    for (int i = 0; i < KERNEL_SIZE; i++) {
+      delete[] gauss_kernel[i];
+    }
+    delete[] gauss_kernel;
   }
-  delete[] gauss_kernel;
-
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - begin;
 
   cv::imshow("Processed Image", destination);
 
   cout << "Processing time: " << diff.count() << " s" << endl;
+  cout << "Time for 1 iteration: " << diff.count()/iter << " s" << endl;
+  cout << "IPS: " << iter/diff.count() << endl;
 
   cv::waitKey();
   return 0;

@@ -1,6 +1,6 @@
 #include <chrono> // for high_resolution_clock
-#include <math.h> /* modf */
 #include <iostream>
+#include <math.h> /* modf */
 #include <omp.h>
 #include <opencv2/opencv.hpp>
 
@@ -67,27 +67,33 @@ int main(int argc, char **argv) {
                       cv::Scalar(0, 255, 0));
 
   auto begin = chrono::high_resolution_clock::now();
+
+  const int iter = 10;
+  for (int it = 0; it < iter; it++) {
 #pragma omp parallel for
-  for (int i = 0; i < destination.rows; i++) {
-    // #pragma omp parallel for
-    for (int j = 0; j < destination.cols; j++) {
-      float x_pos, y_pos, intpX, intpY;
-      intpX = modf(i / scaleX, &x_pos);
-      intpY = modf(j / scaleY, &y_pos);
-      cv::Vec3f pix1 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos, y_pos);
-      cv::Vec3f pix2 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos + 1, y_pos);
-      cv::Vec3f pix3 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos, y_pos + 1);
-      cv::Vec3f pix4 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos + 1, y_pos + 1);
-      destination.at<cv::Vec3b>(i, j) = interpolate_pix(pix1, pix2, pix3, pix4, intpX, intpY);
+    for (int i = 0; i < destination.rows; i++) {
+      // #pragma omp parallel for
+      for (int j = 0; j < destination.cols; j++) {
+        float x_pos, y_pos, intpX, intpY;
+        intpX = modf(i / scaleX, &x_pos);
+        intpY = modf(j / scaleY, &y_pos);
+        cv::Vec3f pix1 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos, y_pos);
+        cv::Vec3f pix2 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos + 1, y_pos);
+        cv::Vec3f pix3 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos, y_pos + 1);
+        cv::Vec3f pix4 = (cv::Vec3f)source.at<cv::Vec3b>(x_pos + 1, y_pos + 1);
+        destination.at<cv::Vec3b>(i, j) =
+            interpolate_pix(pix1, pix2, pix3, pix4, intpX, intpY);
+      }
     }
   }
-
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - begin;
 
   cv::imshow("Processed Image", destination);
 
   cout << "Processing time: " << diff.count() << " s" << endl;
+  cout << "Time for 1 iteration: " << diff.count() / iter << " s" << endl;
+  cout << "IPS: " << iter / diff.count() << endl;
 
   cv::waitKey();
   return 0;

@@ -5,22 +5,22 @@
 
 using namespace std;
 
-
 /**
  * Clamps a vector's values between low and high.
  *
  * @param elem: element to clamp.
  * @param low: lower bound for the clamp.
  * @param high: upper bound for the clamp.
- * @return a vector with the original vector values clamped in the specified interval.
+ * @return a vector with the original vector values clamped in the specified
+ * interval.
  */
 cv::Vec3f clamp(cv::Vec3f elem, float low, float high) {
-    cv::Vec3f result;
-    result[0] = max(low, min(high, elem[0]));
-    result[1] = max(low, min(high, elem[1]));
-    result[2] = max(low, min(high, elem[2]));
+  cv::Vec3f result;
+  result[0] = max(low, min(high, elem[0]));
+  result[1] = max(low, min(high, elem[1]));
+  result[2] = max(low, min(high, elem[2]));
 
-    return result;
+  return result;
 }
 
 /**
@@ -90,27 +90,31 @@ int main(int argc, char **argv) {
 
   auto begin = chrono::high_resolution_clock::now();
 
+  const int iter = 10;
+  for (int it = 0; it < iter; it++) {
 #pragma omp parallel for
-  for (int i = 0; i < source1.rows; i++) {
-    // #pragma omp parallel for
-    for (int j = 0; j < source1.cols; j++) {
-      cv::Vec3f av;
-      av = pix_arithm((cv::Vec3f)source1.at<cv::Vec3b>(i, j),
-                      (cv::Vec3f)source2.at<cv::Vec3b>(i, j), operation,
-                      sc_factor, offset);
+    for (int i = 0; i < source1.rows; i++) {
+      // #pragma omp parallel for
+      for (int j = 0; j < source1.cols; j++) {
+        cv::Vec3f av;
+        av = pix_arithm((cv::Vec3f)source1.at<cv::Vec3b>(i, j),
+                        (cv::Vec3f)source2.at<cv::Vec3b>(i, j), operation,
+                        sc_factor, offset);
 
-      av = clamp(av, 0, 255);
+        av = clamp(av, 0, 255);
 
-      destination.at<cv::Vec3b>(i, j) = av;
+        destination.at<cv::Vec3b>(i, j) = av;
+      }
     }
   }
-
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - begin;
 
   cv::imshow("Processed Image", destination);
 
   cout << "Processing time: " << diff.count() << " s" << endl;
+  cout << "Time for 1 iteration: " << diff.count() / iter << " s" << endl;
+  cout << "IPS: " << iter / diff.count() << endl;
 
   cv::waitKey();
   return 0;
