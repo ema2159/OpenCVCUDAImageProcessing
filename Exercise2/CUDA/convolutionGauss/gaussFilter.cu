@@ -10,6 +10,19 @@
 #define TILE_SIZE 15
 
 /**
+ * Clamps the value val in the interval [lo, high].
+ * Equivalent to max(lo, min(val, high)).
+ *
+ * @param val: value to clamp.
+ * @param lo: lower bound for the clamping.
+ * @param high: higher bound for the clamping.
+ * @return val clamped between lo and high.
+ */
+__device__ int clamp(int val, int lo, int high) {
+  return max(lo, min(val, high));
+}
+
+/**
  * Returns the value of a 2-D Gaussian function with an standard
  * deviation of sigma at position (x, y)
  *
