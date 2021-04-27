@@ -18,7 +18,7 @@
  * @param high: higher bound for the clamping.
  * @return val clamped between lo and high.
  */
-__device__ int clamp(int val, int lo, int high) {
+template< typename T > __device__ T clamp(T val, T lo, T high) {
   return max(lo, min(val, high));
 }
 
@@ -48,8 +48,8 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
     // Create shared memory using externally passed size
     extern __shared__ uchar3 tile[];
 
-    int px = clamp(dst_x, 0, cols-1);
-    int py = clamp(dst_y, 0, rows-1);
+    int px = clamp<float>(dst_x, 0, cols-1);
+    int py = clamp<float>(dst_y, 0, rows-1);
 
     // Cache pixels in shared memory
     tile[threadIdx.y*(TILE_SIZE+kernel_size)+threadIdx.x] = src(py, px);
