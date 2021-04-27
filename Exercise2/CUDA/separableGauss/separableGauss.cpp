@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - begin;
 
-  cv::imshow("Processed Image", d_interm);
+  cv::imshow("Processed Image", d_result);
 
   cout << diff.count() << endl;
   cout << diff.count() / iter << endl;

@@ -37,9 +37,16 @@ __device__ float gauss_func(int x, float sigma) {
 __global__ void process(const cv::cuda::PtrStep<uchar3> src,
 			cv::cuda::PtrStep<uchar3> dst, int rows, int cols,
 			int kernel_size, int sigma, bool first_pass) {
+    int dst_x;
+    int dst_y;
 
-    const int dst_x = TILE_SIZE * blockIdx.x + threadIdx.x-kernel_size;
-    const int dst_y = blockDim.y * blockIdx.y + threadIdx.y;
+    if(first_pass) {
+	dst_x = TILE_SIZE * blockIdx.x + threadIdx.x-kernel_size;
+	dst_y = blockDim.y * blockIdx.y + threadIdx.y;
+    } else {
+	dst_x = blockDim.x * blockIdx.x + threadIdx.x;
+	dst_y = TILE_SIZE * blockIdx.y + threadIdx.y-kernel_size;
+    }
 
     // Filter radius
     const int kernel_div2 = kernel_size / 2;
@@ -51,33 +58,62 @@ __global__ void process(const cv::cuda::PtrStep<uchar3> src,
     int py = clamp<float>(dst_y, 0, rows-1);
 
     // Cache pixels in shared memory
-    tile[threadIdx.x] = src(py, px);
+    if(first_pass) {
+	tile[threadIdx.x] = src(py, px);
+    } else {
+	tile[threadIdx.y] = src(py, px);
+    }
 
     // Wait until all thread cache their pixes values
     __syncthreads();  
 
-    bool is_inside_tile =
-	kernel_div2 <= threadIdx.x && threadIdx.x < TILE_SIZE + kernel_div2;
-    if (dst_x < cols && dst_y < rows && is_inside_tile) {
-	float3 val = make_float3(0, 0, 0);
-	float gauss_sum = 0;
-	for (int m = -kernel_div2; m <= kernel_div2; m++) {
-	    float gauss_val = gauss_func(m, sigma);
-	    gauss_sum += gauss_val;
+    bool is_inside_tile;
+    if(first_pass) {
+	is_inside_tile =kernel_div2 <= threadIdx.x && threadIdx.x < TILE_SIZE + kernel_div2;
+	if (dst_x < cols && dst_y < rows && is_inside_tile) {
+	    float3 val = make_float3(0, 0, 0);
+	    float gauss_sum = 0;
+	    for (int m = -kernel_div2; m <= kernel_div2; m++) {
+		float gauss_val = gauss_func(m, sigma);
+		gauss_sum += gauss_val;
 
-	    int tx = threadIdx.x+m;
-	    uchar3 pix = tile[tx];
-	    val.x += (float)pix.x*gauss_val;
-	    val.y += (float)pix.y*gauss_val;
-	    val.z += (float)pix.z*gauss_val;
+		int tx = threadIdx.x+m;
+		uchar3 pix = tile[tx];
+		val.x += (float)pix.x*gauss_val;
+		val.y += (float)pix.y*gauss_val;
+		val.z += (float)pix.z*gauss_val;
+	    }
+	    val.x = val.x/gauss_sum;
+	    val.y = val.y/gauss_sum;
+	    val.z = val.z/gauss_sum;
+
+	    dst(dst_y, dst_x).x = val.x;
+	    dst(dst_y, dst_x).y = val.y;
+	    dst(dst_y, dst_x).z = val.z;
 	}
-	val.x = val.x/gauss_sum;
-	val.y = val.y/gauss_sum;
-	val.z = val.z/gauss_sum;
+    } else {
+	is_inside_tile = kernel_div2 <= threadIdx.y && threadIdx.y < TILE_SIZE + kernel_div2;
+	if (dst_x < cols && dst_y < rows && is_inside_tile) {
+	    float3 val = make_float3(0, 0, 0);
+	    float gauss_sum = 0;
+	    for (int n = -kernel_div2; n <= kernel_div2; n++) {
+		float gauss_val = gauss_func(n, sigma);
+		gauss_sum += gauss_val;
 
-	dst(dst_y, dst_x).x = val.x;
-	dst(dst_y, dst_x).y = val.y;
-	dst(dst_y, dst_x).z = val.z;
+		int ty = threadIdx.y+n;
+		uchar3 pix = tile[ty];
+		val.x += (float)pix.x*gauss_val;
+		val.y += (float)pix.y*gauss_val;
+		val.z += (float)pix.z*gauss_val;
+	    }
+	    val.x = val.x/gauss_sum;
+	    val.y = val.y/gauss_sum;
+	    val.z = val.z/gauss_sum;
+
+	    dst(dst_y, dst_x).x = val.x;
+	    dst(dst_y, dst_x).y = val.y;
+	    dst(dst_y, dst_x).z = val.z;
+	}
     }
 }
 
@@ -87,15 +123,21 @@ int divUp(int a, int b) {
 
 void startCUDA (cv::cuda::GpuMat& src, cv::cuda::GpuMat& dst, int KERNEL_SIZE,
 		float SIGMA, bool first_pass) {
-    const dim3 block(TILE_SIZE+KERNEL_SIZE);
-    const dim3 grid(divUp(dst.cols, TILE_SIZE)+1, divUp(dst.rows, block.y));
 
+    const dim3 blockX(TILE_SIZE+KERNEL_SIZE);
+    const dim3 gridX(divUp(dst.cols, TILE_SIZE)+1, divUp(dst.rows, blockX.y));
+    const dim3 blockY(1, TILE_SIZE+KERNEL_SIZE);
+    const dim3 gridY(divUp(dst.cols, blockY.x), divUp(dst.rows, TILE_SIZE)+1);
   
     // Create a tile to process pixels within a block's shared memory
     int shmem_size = sizeof(uchar3)*(TILE_SIZE+KERNEL_SIZE);
   
-    process<<<grid, block, shmem_size>>>(src, dst, dst.rows, dst.cols,
-					 KERNEL_SIZE, SIGMA, first_pass);
-
+    if(first_pass) {
+	process<<<gridX, blockX, shmem_size>>>(src, dst, dst.rows, dst.cols,
+					     KERNEL_SIZE, SIGMA, first_pass);
+    } else {
+	process<<<gridY, blockY, shmem_size>>>(src, dst, dst.rows, dst.cols,
+					     KERNEL_SIZE, SIGMA, first_pass);
+    }
 }
 
