@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
   cv::imshow("Original Image", h_img);
 
   auto begin = chrono::high_resolution_clock::now();
-  const int iter = 1;
+  const int iter = 10;
 
   d_img.upload(h_img);
   d_result.upload(h_result);
@@ -31,9 +31,9 @@ int main(int argc, char **argv) {
 
   cv::imshow("Processed Image", d_result);
 
-  cout << diff.count() << endl;
-  cout << diff.count() / iter << endl;
-  cout << iter / diff.count() << endl;
+  cout << "Processing time: " << diff.count() << " s" << endl;
+  cout << "Time for 1 iteration: " << diff.count() / iter << " s" << endl;
+  cout << "IPS: " << iter / diff.count() << endl;
 
   cv::waitKey();
   return 0;
