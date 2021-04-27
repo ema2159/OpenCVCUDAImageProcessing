@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 
   auto begin = chrono::high_resolution_clock::now();
 
-  const int KERNEL_SIZE = atoi(argv[2]);
+  const int KERNEL_SIZE = atoi(argv[2])%2 ? atoi(argv[2]) : atoi(argv[2])+1;
   const int KERNEL_POW_2 = pow(KERNEL_SIZE, 2);
   const int KERNEL_DIV_2 = KERNEL_SIZE / 2;
 
