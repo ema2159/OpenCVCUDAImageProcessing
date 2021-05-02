@@ -1,6 +1,7 @@
 #include <chrono> // for high_resolution_clock
 #include <iostream>
 #include <opencv2/cudawarping.hpp>
+#include <opencv2/cudaarithm.hpp>
 #include <opencv2/opencv.hpp>
 
 using namespace std;
