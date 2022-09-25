@@ -1,0 +1,14 @@
+#+TITLE: OpenCV/OpenMP/CUDA based image processing
+#+CREATOR: Emmanuel Bustos T.
+#+OPTIONS: toc:nil
+
+This project implements several image processing algorithms using OpenCV, and then accelerating the computations through parallel processing using either OpenMP or CUDA. In the Exercises 2 directory, further enhancements were applied to some of the algorithms by using CUDA's shared memory model
+
+The algorithms implemented are the following:
+- Hue shift transformation
+- 2D kernel Gaussian filter
+- Laplace filter
+- Image arithmetic
+- Image scaling
+- Median filter
+- Separable Gaussian filter
